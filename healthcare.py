@@ -202,7 +202,7 @@ def main():
         "Year Range",
         min_value=int(df['Year'].min()),
         max_value=int(df['Year'].max()),
-        value=(2010, int(df['Year'].max())),
+        value=(int(df['Year'].min()), int(df['Year'].max())),
         help="💡 TIP: Use recent years (2010+) for current policy relevance"
     )
     
