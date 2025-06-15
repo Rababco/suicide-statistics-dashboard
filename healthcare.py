@@ -79,21 +79,6 @@ def check_password():
     </div>
     """, unsafe_allow_html=True)
     
-   
-    # Create the login interface
-    st.markdown("""
-    <div class="login-container">
-        <div class="login-title">🏥 Healthcare Analytics</div>
-        <div class="stats-icons">📊 📈 🌍</div>
-        <div class="login-subtitle">Global Suicide Statistics Dashboard</div>
-        <div class="access-info">
-            <h4>🔐 Secure Access Portal</h4>
-            <p>This dashboard contains sensitive healthcare data.<br>
-            Please enter your credentials to continue.</p>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    
     # Add some spacing
     st.markdown("<br>", unsafe_allow_html=True)
     
