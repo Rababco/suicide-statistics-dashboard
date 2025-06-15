@@ -25,42 +25,59 @@ def check_password():
     st.markdown("""
     <style>
     .main > div {
-        padding-top: 2rem;
+        padding-top: 3rem;
+        background-color: #f5f5f5;
     }
     .login-container {
-        max-width: 400px;
+        max-width: 450px;
         margin: 0 auto;
-        padding: 2rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 15px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        text-align: center;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    .login-header {
+        background: #008b8b;
         color: white;
+        padding: 2rem;
+        text-align: center;
     }
     .login-title {
-        font-size: 2.5rem;
-        font-weight: bold;
-        margin-bottom: 1rem;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin: 0;
+        letter-spacing: -0.5px;
     }
     .login-subtitle {
-        font-size: 1.2rem;
-        margin-bottom: 2rem;
+        font-size: 0.95rem;
+        margin-top: 0.5rem;
         opacity: 0.9;
+        font-weight: 300;
     }
-    .stats-icons {
-        font-size: 3rem;
-        margin: 1rem 0;
-        display: flex;
-        justify-content: center;
-        gap: 1rem;
+    .login-body {
+        padding: 2.5rem 2rem;
     }
-    .access-info {
-        background: rgba(255,255,255,0.1);
+    .security-notice {
+        background: #f8f9fa;
+        border-left: 3px solid #008b8b;
         padding: 1rem;
-        border-radius: 10px;
-        margin: 1rem 0;
-        backdrop-filter: blur(10px);
+        margin-bottom: 2rem;
+        font-size: 0.9rem;
+        color: #495057;
+    }
+    .auth-label {
+        color: #495057;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+    .data-info {
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid #e9ecef;
+        font-size: 0.875rem;
+        color: #6c757d;
+        text-align: center;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -68,13 +85,17 @@ def check_password():
     # Create the login interface
     st.markdown("""
     <div class="login-container">
-        <div class="login-title">🏥 Healthcare Analytics</div>
-        <div class="stats-icons">📊 📈 🌍</div>
-        <div class="login-subtitle">Global Suicide Statistics Dashboard</div>
-        <div class="access-info">
-            <h4>🔐 Secure Access Portal</h4>
-            <p>This dashboard contains sensitive healthcare data.<br>
-            Please enter the password to continue.</p>
+        <div class="login-header">
+            <div class="login-title">Healthcare Analytics Platform</div>
+            <div class="login-subtitle">Global Suicide Statistics Dashboard</div>
+        </div>
+        <div class="login-body">
+            <div class="security-notice">
+                <strong>Protected Resource</strong><br>
+                This dashboard contains sensitive healthcare data and statistical analysis. 
+                Access is restricted to authorized personnel only.
+            </div>
+            <div class="auth-label">Authentication Required</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -86,24 +107,28 @@ def check_password():
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.text_input(
-            "🔑 Access Code", 
+            "Password", 
             type="password", 
             on_change=password_entered, 
             key="password",
-            placeholder="Enter dashboard password"
+            placeholder="Enter access password",
+            label_visibility="visible"
         )
         
         if "password_correct" in st.session_state:
             if not st.session_state["password_correct"]:
-                st.error("❌ Invalid access code. Please try again.")
+                st.error("⚠️ Authentication failed. Please verify your credentials.")
     
     # Add footer information
     st.markdown("<br><br>", unsafe_allow_html=True)
     st.markdown("""
-    <div style='text-align: center; color: #666; font-size: 0.9rem;'>
-        📋 <strong>Dashboard Features:</strong><br>
-        Interactive visualizations • Global trend analysis • Data filtering<br>
-        🌐 Covering 101 countries from 1985-2016
+    <div class="data-info">
+        <strong>Dataset Information</strong><br>
+        Coverage: 101 countries • Time Period: 1985-2016 • Updated: Quarterly<br>
+        <br>
+        <span style="color: #adb5bd; font-size: 0.8rem;">
+        For access requests or technical support, please contact the Healthcare Analytics team.
+        </span>
     </div>
     """, unsafe_allow_html=True)
     
