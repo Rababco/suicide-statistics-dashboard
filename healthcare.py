@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
 
-# Password protection function
+# Password Protection with Enhanced Design
 def check_password():
     """Returns `True` if the user had the correct password."""
     
@@ -13,39 +13,101 @@ def check_password():
         """Checks whether a password entered by the user is correct."""
         if st.session_state["password"] == "healthcare2025":
             st.session_state["password_correct"] = True
-            del st.session_state["password"]
+            del st.session_state["password"]  # Don't store the password
         else:
             st.session_state["password_correct"] = False
 
-    if "password_correct" not in st.session_state:
-        st.markdown("""
-        <div style="text-align: center; padding: 50px;">
-            <h1>🏥 Healthcare Analytics Dashboard</h1>
-            <h2>Global Suicide Statistics</h2>
-            <p style="color: #666; font-size: 1.1em;">Consultant Access Portal</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            st.text_input("Password", type="password", on_change=password_entered, key="password")
-        return False
-    elif not st.session_state["password_correct"]:
-        st.markdown("""
-        <div style="text-align: center; padding: 50px;">
-            <h1>🏥 Healthcare Analytics Dashboard</h1>
-            <h2>Global Suicide Statistics</h2>
-            <p style="color: #666; font-size: 1.1em;">Consultant Access Portal</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            st.text_input("Password", type="password", on_change=password_entered, key="password")
-            st.error("❌ Password incorrect")
-        return False
-    else:
+    # Return True if password is validated
+    if st.session_state.get("password_correct", False):
         return True
+
+    # Custom CSS for the login page
+    st.markdown("""
+    <style>
+    .main > div {
+        padding-top: 2rem;
+    }
+    .login-container {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        text-align: center;
+        color: white;
+    }
+    .login-title {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    .login-subtitle {
+        font-size: 1.2rem;
+        margin-bottom: 2rem;
+        opacity: 0.9;
+    }
+    .stats-icons {
+        font-size: 3rem;
+        margin: 1rem 0;
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+    }
+    .access-info {
+        background: rgba(255,255,255,0.1);
+        padding: 1rem;
+        border-radius: 10px;
+        margin: 1rem 0;
+        backdrop-filter: blur(10px);
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Create the login interface
+    st.markdown("""
+    <div class="login-container">
+        <div class="login-title">🏥 Healthcare Analytics</div>
+        <div class="stats-icons">📊 📈 🌍</div>
+        <div class="login-subtitle">Global Suicide Statistics Dashboard</div>
+        <div class="access-info">
+            <h4>🔐 Secure Access Portal</h4>
+            <p>This dashboard contains sensitive healthcare data.<br>
+            Please enter your credentials to continue.</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Add some spacing
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Center the password input
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.text_input(
+            "🔑 Access Code", 
+            type="password", 
+            on_change=password_entered, 
+            key="password",
+            placeholder="Enter dashboard password"
+        )
+        
+        if "password_correct" in st.session_state:
+            if not st.session_state["password_correct"]:
+                st.error("❌ Invalid access code. Please try again.")
+    
+    # Add footer information
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style='text-align: center; color: #666; font-size: 0.9rem;'>
+        📋 <strong>Dashboard Features:</strong><br>
+        Interactive visualizations • Global trend analysis • Data filtering<br>
+        🌐 Covering 101 countries from 1985-2016
+    </div>
+    """, unsafe_allow_html=True)
+    
+    return False
 
 # Check password first - if wrong, stop here
 if not check_password():
