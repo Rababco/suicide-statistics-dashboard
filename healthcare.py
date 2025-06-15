@@ -612,12 +612,10 @@ def main():
     
     with col2:
         st.markdown("""
-        **💡 Analysis Tips:**
-        - Compare **rates per 100K**, not raw numbers
-        - Small countries with high rates need urgent attention
-        - Filter by individual countries for accurate comparison
-        - Focus on 15-24 age group for youth crisis identification
-        - Use recent years (2010+) for policy relevance
+        # Add this instead
+st.markdown("---")
+st.markdown("### 📊 Executive Summary")
+st.info(f"Analysis covers {years_span} years across {countries_count} countries. Global average rate: {avg_rate:.1f} per 100K population.")
         """)
 
 if __name__ == "__main__":
