@@ -496,7 +496,6 @@ def main():
         st.markdown('</div>', unsafe_allow_html=True)
     
     with col2:
-    
         st.markdown('<div class="chart-container">', unsafe_allow_html=True)
         st.markdown('<div class="chart-title">Economic Factors</div>', unsafe_allow_html=True)
         
@@ -541,18 +540,18 @@ def main():
             category_orders={'Income Level': income_order}
         )
         fig_gdp.update_layout(
-    height=200,
-    margin=dict(l=40, r=120, t=40, b=40),  # More right margin
-    font=dict(size=12),
-    showlegend=True,
-    legend=dict(orientation="v", yanchor="top", y=0.95, xanchor="left", x=1.05, font=dict(size=9)),  # Better legend position
-    plot_bgcolor='rgba(0,0,0,0)',
-    paper_bgcolor='rgba(0,0,0,0)'
-)
-fig_gdp.update_xaxes(title_font_size=12, tickfont_size=11, range=[0, 80000])  # Expand x-axis range
-fig_gdp.update_yaxes(title_font_size=12, tickfont_size=11)
-st.plotly_chart(fig_gdp, use_container_width=True)
-st.markdown('</div>', unsafe_allow_html=True)
+            height=200,
+            margin=dict(l=40, r=120, t=40, b=40),  # More right margin
+            font=dict(size=12),
+            showlegend=True,
+            legend=dict(orientation="v", yanchor="top", y=0.95, xanchor="left", x=1.05, font=dict(size=9)),  # Better legend position
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)'
+        )
+        fig_gdp.update_xaxes(title_font_size=12, tickfont_size=11, range=[0, 80000])  # Expand x-axis range
+        fig_gdp.update_yaxes(title_font_size=12, tickfont_size=11)
+        st.plotly_chart(fig_gdp, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
     
     with col3:
         st.markdown('<div class="chart-container">', unsafe_allow_html=True)
@@ -587,7 +586,7 @@ st.markdown('</div>', unsafe_allow_html=True)
         fig_top.update_yaxes(title_font_size=12, tickfont_size=11)
         st.plotly_chart(fig_top, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
-    
+
 
 if __name__ == "__main__":
     main()
