@@ -551,8 +551,8 @@ def main():
 )
 fig_gdp.update_xaxes(title_font_size=12, tickfont_size=11, range=[0, 80000])  # Expand x-axis range
 fig_gdp.update_yaxes(title_font_size=12, tickfont_size=11)
-        st.plotly_chart(fig_gdp, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+st.plotly_chart(fig_gdp, use_container_width=True)
+st.markdown('</div>', unsafe_allow_html=True)
     
     with col3:
         st.markdown('<div class="chart-container">', unsafe_allow_html=True)
