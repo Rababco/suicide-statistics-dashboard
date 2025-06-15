@@ -108,6 +108,49 @@ def check_password():
     """, unsafe_allow_html=True)
     
     return False
+    # Create the login interface
+    st.markdown("""
+    <div class="login-container">
+        <div class="login-title">🏥 Healthcare Analytics</div>
+        <div class="stats-icons">📊 📈 🌍</div>
+        <div class="login-subtitle">Global Suicide Statistics Dashboard</div>
+        <div class="access-info">
+            <h4>🔐 Secure Access Portal</h4>
+            <p>This dashboard contains sensitive healthcare data.<br>
+            Please enter your credentials to continue.</p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Add some spacing
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Center the password input
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.text_input(
+            "🔑 Access Code", 
+            type="password", 
+            on_change=password_entered, 
+            key="password",
+            placeholder="Enter dashboard password"
+        )
+        
+        if "password_correct" in st.session_state:
+            if not st.session_state["password_correct"]:
+                st.error("❌ Invalid access code. Please try again.")
+    
+    # Add footer information
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style='text-align: center; color: #666; font-size: 0.9rem;'>
+        📋 <strong>Dashboard Features:</strong><br>
+        Interactive visualizations • Global trend analysis • Data filtering<br>
+        🌐 Covering 101 countries from 1985-2016
+    </div>
+    """, unsafe_allow_html=True)
+    
+    return False
 
 # Check password first - if wrong, stop here
 if not check_password():
