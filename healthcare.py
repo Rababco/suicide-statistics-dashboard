@@ -538,7 +538,6 @@ def main():
                 'Upper Middle Income ($4K-$12K)': '#2ca02c',
                 'High Income (>$12K)': '#1f77b4'
             },
-            title="Suicide Rate vs Economic Development",
             category_orders={'Income Level': income_order}
         )
         fig_gdp.update_layout(
