@@ -589,34 +589,6 @@ def main():
         st.plotly_chart(fig_top, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
     
-    # Analysis insights panel
-    st.markdown("---")
-    st.markdown("### 📋 Key Insights & Analysis Tips")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        # Risk assessment
-        high_risk_countries = country_data[country_data['Rate per 100K'] > 20]
-        crisis_countries = country_data[country_data['Rate per 100K'] > 30]
-        
-        st.markdown(f"""
-        **🚨 Risk Assessment:**
-        - **{len(crisis_countries)} countries** in CRISIS (>30 per 100K)
-        - **{len(high_risk_countries)} countries** at HIGH RISK (>20 per 100K)
-        - Global average: **{filtered_df['Suicides/100K Population'].mean():.1f} per 100K**
-        """)
-        
-        if len(crisis_countries) > 0:
-            st.markdown(f"**Crisis Countries:** {', '.join(crisis_countries['Country'].head(3).tolist())}")
-    
-    with col2:
-        st.markdown("""
-        # Add this instead
-st.markdown("---")
-st.markdown("### 📊 Executive Summary")
-st.info(f"Analysis covers {years_span} years across {countries_count} countries. Global average rate: {avg_rate:.1f} per 100K population.")
-        """)
 
 if __name__ == "__main__":
     main()
