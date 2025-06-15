@@ -499,12 +499,14 @@ def main():
         st.markdown('<div class="chart-container">', unsafe_allow_html=True)
         st.markdown('<div class="chart-title">Economic Factors</div>', unsafe_allow_html=True)
         
-        gdp_data = filtered_df.groupby(['Country', 'Year']).agg({
-            'Suicides Count': 'sum',
-            'Population': 'sum',
-            'GDP Per Capita ($)': 'mean'
-        }).reset_index()
-        gdp_data['Rate per 100K'] = (gdp_data['Suicides Count'] / gdp_data['Population']) * 100000
+        # Add toggle for economic view
+        econ_view = st.radio(
+            "View:",
+            ["GDP Correlation", "Income Trends"],
+            horizontal=True,
+            label_visibility="collapsed",
+            key="econ_view"
+        )
         
         # Create income level categories based on World Bank classifications
         def categorize_income(gdp):
@@ -517,63 +519,123 @@ def main():
             else:
                 return 'High Income'
         
-        gdp_data['Income Level'] = gdp_data['GDP Per Capita ($)'].apply(categorize_income)
-        
-        # Define the order for the legend
+        # Add income level to filtered_df for both views
+        filtered_df['Income Level'] = filtered_df['GDP Per Capita ($)'].apply(categorize_income)
         income_order = ['Low Income', 'Lower Middle', 'Upper Middle', 'High Income']
-        gdp_data['Income Level'] = pd.Categorical(gdp_data['Income Level'], categories=income_order, ordered=True)
         
-        fig_gdp = px.scatter(
-            gdp_data,
-            x='GDP Per Capita ($)',
-            y='Rate per 100K',
-            color='Income Level',
-            size='Suicides Count',
-            hover_data=['Country', 'Year'],
-            color_discrete_map={
-                'Low Income': '#d62728',
-                'Lower Middle': '#ff7f0e', 
-                'Upper Middle': '#2ca02c',
-                'High Income': '#1f77b4'
-            },
-            category_orders={'Income Level': income_order},
-            size_max=15  # Control maximum bubble size
-        )
-        fig_gdp.update_layout(
-            height=200,
-            margin=dict(l=40, r=40, t=30, b=40),
-            font=dict(size=11),
-            showlegend=True,
-            legend=dict(
-                orientation="h", 
-                yanchor="bottom", 
-                y=1.02, 
-                xanchor="center", 
-                x=0.5, 
-                font=dict(size=10),
-                itemsizing='constant'
-            ),
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            xaxis=dict(
-                tickformat='$,.0f',
-                showgrid=True,
-                gridcolor='rgba(128,128,128,0.2)'
-            ),
-            yaxis=dict(
-                showgrid=True,
-                gridcolor='rgba(128,128,128,0.2)'
+        if econ_view == "GDP Correlation":
+            # Original scatter plot view
+            gdp_data = filtered_df.groupby(['Country', 'Year']).agg({
+                'Suicides Count': 'sum',
+                'Population': 'sum',
+                'GDP Per Capita ($)': 'mean'
+            }).reset_index()
+            gdp_data['Rate per 100K'] = (gdp_data['Suicides Count'] / gdp_data['Population']) * 100000
+            gdp_data['Income Level'] = gdp_data['GDP Per Capita ($)'].apply(categorize_income)
+            gdp_data['Income Level'] = pd.Categorical(gdp_data['Income Level'], categories=income_order, ordered=True)
+            
+            fig_gdp = px.scatter(
+                gdp_data,
+                x='GDP Per Capita ($)',
+                y='Rate per 100K',
+                color='Income Level',
+                size='Suicides Count',
+                hover_data=['Country', 'Year'],
+                color_discrete_map={
+                    'Low Income': '#d62728',
+                    'Lower Middle': '#ff7f0e', 
+                    'Upper Middle': '#2ca02c',
+                    'High Income': '#1f77b4'
+                },
+                category_orders={'Income Level': income_order},
+                size_max=15
             )
-        )
-        fig_gdp.update_xaxes(
-            title_font_size=11, 
-            tickfont_size=10,
-            tickmode='linear',
-            tick0=0,
-            dtick=20000,
-            range=[-2000, 82000]
-        )
-        fig_gdp.update_yaxes(title_font_size=11, tickfont_size=10)
+            fig_gdp.update_layout(
+                height=170,
+                margin=dict(l=40, r=40, t=10, b=40),
+                font=dict(size=11),
+                showlegend=True,
+                legend=dict(
+                    orientation="h", 
+                    yanchor="bottom", 
+                    y=1.02, 
+                    xanchor="center", 
+                    x=0.5, 
+                    font=dict(size=10),
+                    itemsizing='constant'
+                ),
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)',
+                xaxis=dict(
+                    tickformat='$,.0f',
+                    showgrid=True,
+                    gridcolor='rgba(128,128,128,0.2)'
+                ),
+                yaxis=dict(
+                    showgrid=True,
+                    gridcolor='rgba(128,128,128,0.2)'
+                )
+            )
+            fig_gdp.update_xaxes(
+                title_font_size=11, 
+                tickfont_size=10,
+                tickmode='linear',
+                tick0=0,
+                dtick=20000,
+                range=[-2000, 82000]
+            )
+            fig_gdp.update_yaxes(title_font_size=11, tickfont_size=10)
+            
+        else:  # Income Trends view
+            # Time series by income level
+            income_time_data = filtered_df.groupby(['Year', 'Income Level']).agg({
+                'Suicides Count': 'sum',
+                'Population': 'sum'
+            }).reset_index()
+            income_time_data['Rate per 100K'] = (income_time_data['Suicides Count'] / income_time_data['Population']) * 100000
+            income_time_data['Income Level'] = pd.Categorical(income_time_data['Income Level'], categories=income_order, ordered=True)
+            
+            fig_gdp = px.line(
+                income_time_data,
+                x='Year',
+                y='Rate per 100K',
+                color='Income Level',
+                color_discrete_map={
+                    'Low Income': '#d62728',
+                    'Lower Middle': '#ff7f0e', 
+                    'Upper Middle': '#2ca02c',
+                    'High Income': '#1f77b4'
+                },
+                category_orders={'Income Level': income_order},
+                markers=True
+            )
+            fig_gdp.update_layout(
+                height=170,
+                margin=dict(l=40, r=40, t=10, b=40),
+                font=dict(size=11),
+                showlegend=True,
+                legend=dict(
+                    orientation="h", 
+                    yanchor="bottom", 
+                    y=1.02, 
+                    xanchor="center", 
+                    x=0.5, 
+                    font=dict(size=10)
+                ),
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)',
+                xaxis=dict(
+                    showgrid=True,
+                    gridcolor='rgba(128,128,128,0.2)'
+                ),
+                yaxis=dict(
+                    showgrid=True,
+                    gridcolor='rgba(128,128,128,0.2)'
+                )
+            )
+            fig_gdp.update_xaxes(title_font_size=11, tickfont_size=10)
+            fig_gdp.update_yaxes(title_font_size=11, tickfont_size=10)
+        
         st.plotly_chart(fig_gdp, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
     
