@@ -74,7 +74,7 @@ def check_password():
         <div class="access-info">
             <h4>🔐 Secure Access Portal</h4>
             <p>This dashboard contains sensitive healthcare data.<br>
-            Please enter your credentials to continue.</p>
+            Please enter the password to continue.</p>
         </div>
     </div>
     """, unsafe_allow_html=True)
