@@ -509,19 +509,18 @@ def main():
         # Create income level categories based on World Bank classifications
         def categorize_income(gdp):
             if gdp < 1000:
-                return 'Low Income (<$1K)'
+                return 'Low Income'
             elif gdp < 4000:
-                return 'Lower Middle Income ($1K-$4K)'
+                return 'Lower Middle'
             elif gdp < 12000:
-                return 'Upper Middle Income ($4K-$12K)'
+                return 'Upper Middle'
             else:
-                return 'High Income (>$12K)'
+                return 'High Income'
         
         gdp_data['Income Level'] = gdp_data['GDP Per Capita ($)'].apply(categorize_income)
         
         # Define the order for the legend
-        income_order = ['Low Income (<$1K)', 'Lower Middle Income ($1K-$4K)', 
-                       'Upper Middle Income ($4K-$12K)', 'High Income (>$12K)']
+        income_order = ['Low Income', 'Lower Middle', 'Upper Middle', 'High Income']
         gdp_data['Income Level'] = pd.Categorical(gdp_data['Income Level'], categories=income_order, ordered=True)
         
         fig_gdp = px.scatter(
@@ -532,24 +531,49 @@ def main():
             size='Suicides Count',
             hover_data=['Country', 'Year'],
             color_discrete_map={
-                'Low Income (<$1K)': '#d62728',
-                'Lower Middle Income ($1K-$4K)': '#ff7f0e', 
-                'Upper Middle Income ($4K-$12K)': '#2ca02c',
-                'High Income (>$12K)': '#1f77b4'
+                'Low Income': '#d62728',
+                'Lower Middle': '#ff7f0e', 
+                'Upper Middle': '#2ca02c',
+                'High Income': '#1f77b4'
             },
-            category_orders={'Income Level': income_order}
+            category_orders={'Income Level': income_order},
+            size_max=15  # Control maximum bubble size
         )
         fig_gdp.update_layout(
             height=200,
-            margin=dict(l=40, r=120, t=40, b=40),  # More right margin
-            font=dict(size=12),
+            margin=dict(l=40, r=40, t=30, b=40),
+            font=dict(size=11),
             showlegend=True,
-            legend=dict(orientation="v", yanchor="top", y=0.95, xanchor="left", x=1.05, font=dict(size=9)),  # Better legend position
+            legend=dict(
+                orientation="h", 
+                yanchor="bottom", 
+                y=1.02, 
+                xanchor="center", 
+                x=0.5, 
+                font=dict(size=10),
+                itemsizing='constant'
+            ),
             plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)'
+            paper_bgcolor='rgba(0,0,0,0)',
+            xaxis=dict(
+                tickformat='$,.0f',
+                showgrid=True,
+                gridcolor='rgba(128,128,128,0.2)'
+            ),
+            yaxis=dict(
+                showgrid=True,
+                gridcolor='rgba(128,128,128,0.2)'
+            )
         )
-        fig_gdp.update_xaxes(title_font_size=12, tickfont_size=11, range=[0, 80000])  # Expand x-axis range
-        fig_gdp.update_yaxes(title_font_size=12, tickfont_size=11)
+        fig_gdp.update_xaxes(
+            title_font_size=11, 
+            tickfont_size=10,
+            tickmode='linear',
+            tick0=0,
+            dtick=20000,
+            range=[-2000, 82000]
+        )
+        fig_gdp.update_yaxes(title_font_size=11, tickfont_size=10)
         st.plotly_chart(fig_gdp, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
     
