@@ -5,17 +5,39 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
 
-# Password Protection with Enhanced Design
+# Configure page FIRST - before any other Streamlit commands
+st.set_page_config(
+    page_title="Global Suicide Statistics Dashboard",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Enhanced Password Protection with Username and Password
 def check_password():
-    """Returns `True` if the user had the correct password."""
+    """Returns `True` if the user had the correct credentials."""
+    
+    # Define authorized users with their credentials
+    AUTHORIZED_USERS = {
+        "sh137": "Healthcare@2025!Prof",  # Professor credentials
+        "ras96": "Analytics&Health#2025"  # Your credentials
+    }
     
     def password_entered():
         """Checks whether a password entered by the user is correct."""
-        if st.session_state["password"] == "healthcare2025":
+        username = st.session_state.get("username", "").strip()
+        password = st.session_state.get("password", "")
+        
+        if username in AUTHORIZED_USERS and AUTHORIZED_USERS[username] == password:
             st.session_state["password_correct"] = True
-            del st.session_state["password"]  # Don't store the password
+            st.session_state["authenticated_user"] = username
+            # Clear the credentials from session state for security
+            del st.session_state["username"]
+            del st.session_state["password"]
         else:
             st.session_state["password_correct"] = False
+            if "authenticated_user" in st.session_state:
+                del st.session_state["authenticated_user"]
 
     # Return True if password is validated
     if st.session_state.get("password_correct", False):
@@ -23,96 +45,136 @@ def check_password():
 
     # Custom CSS for the login page
     st.markdown("""
-    <style>
-    .main > div {
-        padding-top: 3rem;
-        background-color: #f5f5f5;
-    }
-    .login-container {
-        max-width: 450px;
-        margin: 0 auto;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        overflow: hidden;
-    }
-    .login-header {
-        background: #008b8b;
-        color: white;
-        padding: 2rem;
-        text-align: center;
-    }
-    .login-title {
-        font-size: 1.75rem;
-        font-weight: 600;
-        margin: 0;
-        letter-spacing: -0.5px;
-    }
-    .login-subtitle {
-        font-size: 0.95rem;
-        margin-top: 0.5rem;
-        opacity: 0.9;
-        font-weight: 300;
-    }
-    .login-body {
-        padding: 2.5rem 2rem;
-    }
-    .security-notice {
-        background: #f8f9fa;
-        border-left: 3px solid #008b8b;
-        padding: 1rem;
-        margin-bottom: 2rem;
-        font-size: 0.9rem;
-        color: #495057;
-    }
-    .auth-label {
-        color: #495057;
-        font-size: 0.875rem;
-        font-weight: 500;
-        margin-bottom: 0.5rem;
-    }
-    .data-info {
-        margin-top: 2rem;
-        padding-top: 2rem;
-        border-top: 1px solid #e9ecef;
-        font-size: 0.875rem;
-        color: #6c757d;
-        text-align: center;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+<style>
+.main > div {
+    padding-top: 2rem;
+    background-color: #f5f5f5;
+}
+.aub-logo {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.aub-logo img {
+    max-width: 400px;
+    height: auto;
+}
+.login-container {
+    max-width: 450px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+.login-header {
+    background: #008b8b;
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+.login-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.5px;
+}
+.login-subtitle {
+    font-size: 0.95rem;
+    margin-top: 0.5rem;
+    opacity: 0.9;
+    font-weight: 300;
+}
+.login-body {
+    padding: 2.5rem 2rem;
+}
+.prepared-by {
+    background: #e8f5e8;
+    border: 1px solid #20b2aa;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #008b8b;
+    font-weight: 500;
+}
+.security-notice {
+    background: #f8f9fa;
+    border-left: 3px solid #008b8b;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+    color: #495057;
+}
+.auth-label {
+    color: #495057;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+.data-info {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e9ecef;
+    font-size: 0.875rem;
+    color: #6c757d;
+    text-align: center;
+}
+</style>
+""", unsafe_allow_html=True)
+    
+    # Add AUB logo at the top
+    col1, col2, col3 = st.columns([2, 1, 2])
+    with col2:
+        try:
+            st.image("aub_logo.png", width=350)
+        except:
+            # Fallback if image not found
+            st.markdown("""
+            <div style="background: linear-gradient(135deg, #8B0000, #A52A2A); color: white; padding: 2rem; border-radius: 8px; text-align: center; margin-bottom: 2rem;">
+                <h2 style="margin: 0; font-size: 1.5rem;">American University of Beirut</h2>
+                <p style="margin: 0.5rem 0 0 0; font-size: 1.1rem;">Suliman S. Olayan School of Business</p>
+            </div>
+            """, unsafe_allow_html=True)
     
     # Create the login interface
     st.markdown("""
-    <div class="login-container">
-        <div class="login-header">
-            <div class="login-title">Healthcare Analytics Platform</div>
-            <div class="login-subtitle">Global Suicide Statistics Dashboard</div>
+<div class="login-container">
+    <div class="login-header">
+        <div class="login-title">Healthcare Analytics Platform</div>
+        <div class="login-subtitle">Global Suicide Statistics Dashboard</div>
+    </div>
+    <div class="login-body">
+        <div class="prepared-by">
+            Prepared by: Rabab Swaidan, MSBA Class of 2026
         </div>
-        <div class="login-body">
-            <div class="security-notice">
-                <strong>Protected Resource</strong><br>
-                This dashboard contains sensitive healthcare data and statistical analysis. 
-                Access is restricted to authorized personnel only.
-            </div>
-            <div class="auth-label">Authentication Required</div>
+        <div class="security-notice">
+            <strong>Protected Resource</strong><br>
+            This dashboard contains sensitive healthcare data and statistical analysis. 
+            Access is restricted to authorized personnel only.
         </div>
     </div>
-    """, unsafe_allow_html=True)
+</div>
+""", unsafe_allow_html=True)
     
     # Add some spacing
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # Center the password input
-    col1, col2, col3 = st.columns([1, 2, 1])
+    # Center the inputs with narrower middle column
+    col1, col2, col3 = st.columns([1.5, 1, 1.5])
     with col2:
+        st.text_input(
+            "Username", 
+            key="username",
+            placeholder="Enter your username"
+        )
+        
         st.text_input(
             "Password", 
             type="password", 
             on_change=password_entered, 
             key="password",
-            placeholder="Enter access password",
-            label_visibility="visible"
+            placeholder="Enter access password"
         )
         
         if "password_correct" in st.session_state:
@@ -122,15 +184,15 @@ def check_password():
     # Add footer information
     st.markdown("<br><br>", unsafe_allow_html=True)
     st.markdown("""
-    <div class="data-info">
-        <strong>Dataset Information</strong><br>
-        Coverage: 101 countries • Time Period: 1985-2016 • Updated: Quarterly<br>
-        <br>
-        <span style="color: #adb5bd; font-size: 0.8rem;">
-        For access requests or technical support, please contact the Healthcare Analytics team.
-        </span>
-    </div>
-    """, unsafe_allow_html=True)
+<div class="data-info">
+    <strong>Dataset Information</strong><br>
+    Coverage: 101 countries • Time Period: 1985-2016 • Updated: Quarterly<br>
+    <br>
+    <span style="color: #adb5bd; font-size: 0.8rem;">
+    For access requests or technical support, please contact the Healthcare Analytics team.
+    </span>
+</div>
+""", unsafe_allow_html=True)
     
     return False
 
@@ -138,14 +200,10 @@ def check_password():
 if not check_password():
     st.stop()
 
-# YOUR ORIGINAL WORKING CODE STARTS HERE - UNCHANGED
-# Configure page
-st.set_page_config(
-    page_title="Global Suicide Statistics Dashboard",
-    page_icon="📊",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+# Display welcome message with authenticated user
+if "authenticated_user" in st.session_state:
+    user_role = "Healthcare Analytics Supervisor" if st.session_state["authenticated_user"] == "sh137" else "Healthcare Data Analyst"
+    st.success(f"✅ Welcome, {st.session_state['authenticated_user']} ({user_role})")
 
 # Custom CSS for compact layout
 st.markdown("""
