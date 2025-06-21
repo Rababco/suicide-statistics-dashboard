@@ -201,9 +201,9 @@ if not check_password():
     st.stop()
 
 # Display welcome message with authenticated user
-if "authenticated_user" in st.session_state:
-    user_role = "Healthcare Analytics Supervisor" if st.session_state["authenticated_user"] == "sh137" else "Healthcare Data Analyst"
-    st.success(f"✅ Welcome, {st.session_state['authenticated_user']} ({user_role})")
+# if "authenticated_user" in st.session_state:
+#     user_role = "Healthcare Analytics Supervisor" if st.session_state["authenticated_user"] == "sh137" else "Healthcare Data Analyst"
+#     st.success(f"✅ Welcome, {st.session_state['authenticated_user']} ({user_role})")
 
 # Custom CSS for compact layout
 st.markdown("""
