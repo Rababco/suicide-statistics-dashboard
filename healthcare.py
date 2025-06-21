@@ -431,41 +431,10 @@ def main():
         </div>
         """, unsafe_allow_html=True)
     
-    # Chart Row 1: Time series, Age groups, and Geographic map (3 charts)
-    col1, col2, col3 = st.columns(3)
+    # Chart Row 1: Age groups and Geographic map (2 charts)
+    col1, col2 = st.columns([1, 2])
     
     with col1:
-        st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-        st.markdown('<div class="chart-title">Suicide Rates Over Time</div>', unsafe_allow_html=True)
-        
-        yearly_data = filtered_df.groupby(['Year', 'Sex']).agg({
-            'Suicides Count': 'sum',
-            'Population': 'sum'
-        }).reset_index()
-        yearly_data['Rate per 100K'] = (yearly_data['Suicides Count'] / yearly_data['Population']) * 100000
-        
-        fig_time = px.line(
-            yearly_data, 
-            x='Year', 
-            y='Rate per 100K', 
-            color='Sex',
-            color_discrete_map={'Male': '#20b2aa', 'Female': '#ff6b6b'}
-        )
-        fig_time.update_layout(
-            height=200,
-            margin=dict(l=40, r=20, t=30, b=40),
-            font=dict(size=12),
-            showlegend=True,
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5, font=dict(size=11)),
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)'
-        )
-        fig_time.update_xaxes(title_font_size=12, tickfont_size=11)
-        fig_time.update_yaxes(title_font_size=12, tickfont_size=11)
-        st.plotly_chart(fig_time, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with col2:
         st.markdown('<div class="chart-container">', unsafe_allow_html=True)
         st.markdown('<div class="chart-title">Suicide Rates by Age Group</div>', unsafe_allow_html=True)
         
@@ -500,7 +469,7 @@ def main():
         st.plotly_chart(fig_age, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
     
-    with col3:
+    with col2:
         st.markdown('<div class="chart-container">', unsafe_allow_html=True)
         st.markdown('<div class="chart-title">Geographic Distribution</div>', unsafe_allow_html=True)
         
@@ -521,7 +490,7 @@ def main():
             range_color=[0, 50]
         )
         fig_map.update_layout(
-            height=200,
+            height=250,
             margin=dict(l=0, r=0, t=30, b=10),
             font=dict(size=11),
             geo=dict(
@@ -540,42 +509,98 @@ def main():
     
     with col1:
         st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-        st.markdown('<div class="chart-title">Suicide Rates by Generation</div>', unsafe_allow_html=True)
+        st.markdown('<div class="chart-title">Gender Gap Analysis Over Time</div>', unsafe_allow_html=True)
         
-        gen_data = filtered_df.groupby(['Generation', 'Sex']).agg({
+        # Calculate gender gap trends
+        gender_trends = filtered_df.groupby(['Year', 'Sex']).agg({
             'Suicides Count': 'sum',
             'Population': 'sum'
         }).reset_index()
-        gen_data['Rate per 100K'] = (gen_data['Suicides Count'] / gen_data['Population']) * 100000
+        gender_trends['Rate per 100K'] = (gender_trends['Suicides Count'] / gender_trends['Population']) * 100000
         
-        # Define the proper chronological order
-        generation_order = ['G.I. Generation', 'Silent', 'Boomers', 'Generation X', 'Millennials', 'Generation Z']
-        # Only include generations that exist in the filtered data
-        available_generations = [gen for gen in generation_order if gen in gen_data['Generation'].values]
+        # Pivot to calculate male-to-female ratio
+        gender_pivot = gender_trends.pivot(index='Year', columns='Sex', values='Rate per 100K').reset_index()
+        if 'Male' in gender_pivot.columns and 'Female' in gender_pivot.columns:
+            gender_pivot['Male-to-Female Ratio'] = gender_pivot['Male'] / gender_pivot['Female']
+            gender_pivot['Gender Gap'] = gender_pivot['Male'] - gender_pivot['Female']
+            
+            # Create dual-axis chart showing both rates and ratio
+            fig_gender = go.Figure()
+            
+            # Add male and female rates
+            fig_gender.add_trace(go.Scatter(
+                x=gender_pivot['Year'], 
+                y=gender_pivot['Male'],
+                name='Male Rate',
+                line=dict(color='#20b2aa', width=3),
+                yaxis='y'
+            ))
+            
+            fig_gender.add_trace(go.Scatter(
+                x=gender_pivot['Year'], 
+                y=gender_pivot['Female'],
+                name='Female Rate',
+                line=dict(color='#ff6b6b', width=3),
+                yaxis='y'
+            ))
+            
+            # Add ratio line on secondary axis
+            fig_gender.add_trace(go.Scatter(
+                x=gender_pivot['Year'], 
+                y=gender_pivot['Male-to-Female Ratio'],
+                name='M/F Ratio',
+                line=dict(color='#ffa500', width=2, dash='dash'),
+                yaxis='y2'
+            ))
+            
+            fig_gender.update_layout(
+                height=200,
+                margin=dict(l=40, r=40, t=30, b=40),
+                font=dict(size=11),
+                showlegend=True,
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5, font=dict(size=10)),
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)',
+                yaxis=dict(
+                    title="Rate per 100K",
+                    side="left",
+                    showgrid=True,
+                    gridcolor='rgba(128,128,128,0.2)'
+                ),
+                yaxis2=dict(
+                    title="M/F Ratio",
+                    side="right",
+                    overlaying="y",
+                    showgrid=False,
+                    range=[0, max(gender_pivot['Male-to-Female Ratio']) * 1.1] if not gender_pivot['Male-to-Female Ratio'].empty else [0, 5]
+                ),
+                xaxis=dict(
+                    showgrid=True,
+                    gridcolor='rgba(128,128,128,0.2)'
+                )
+            )
+        else:
+            # Fallback if data doesn't have both sexes
+            fig_gender = px.line(
+                gender_trends,
+                x='Year',
+                y='Rate per 100K',
+                color='Sex',
+                color_discrete_map={'Male': '#20b2aa', 'Female': '#ff6b6b'}
+            )
+            fig_gender.update_layout(
+                height=200,
+                margin=dict(l=40, r=20, t=30, b=40),
+                font=dict(size=12),
+                showlegend=True,
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5, font=dict(size=11)),
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)'
+            )
         
-        gen_data['Generation'] = pd.Categorical(gen_data['Generation'], categories=available_generations, ordered=True)
-        gen_data = gen_data.sort_values('Generation')
-        
-        fig_gen = px.bar(
-            gen_data,
-            x='Generation',
-            y='Rate per 100K',
-            color='Sex',
-            color_discrete_map={'Male': '#20b2aa', 'Female': '#ff6b6b'}
-        )
-        fig_gen.update_layout(
-            height=200,
-            margin=dict(l=40, r=20, t=30, b=50),
-            font=dict(size=12),
-            xaxis_tickangle=-45,
-            showlegend=True,
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5, font=dict(size=11)),
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)'
-        )
-        fig_gen.update_xaxes(title_font_size=12, tickfont_size=11)
-        fig_gen.update_yaxes(title_font_size=12, tickfont_size=11)
-        st.plotly_chart(fig_gen, use_container_width=True)
+        fig_gender.update_xaxes(title_font_size=11, tickfont_size=10)
+        fig_gender.update_yaxes(title_font_size=11, tickfont_size=10)
+        st.plotly_chart(fig_gender, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
     
     with col2:
