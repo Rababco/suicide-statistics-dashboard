@@ -455,7 +455,7 @@ def main():
             color_discrete_map={'Male': '#20b2aa', 'Female': '#ff6b6b'}
         )
         fig_age.update_layout(
-            height=200,
+            height=250,
             margin=dict(l=40, r=20, t=30, b=50),
             font=dict(size=12),
             xaxis_tickangle=-45,
@@ -610,7 +610,7 @@ def main():
         # Add toggle for economic view
         econ_view = st.radio(
             "View:",
-            ["GDP Correlation", "Income Trends"],
+            ["GDP Correlation", "Country Overview"],
             horizontal=True,
             label_visibility="collapsed",
             key="econ_view"
@@ -632,7 +632,7 @@ def main():
         income_order = ['Low Income', 'Lower Middle', 'Upper Middle', 'High Income']
         
         if econ_view == "GDP Correlation":
-            # Original scatter plot view
+            # Original scatter plot view - country-year combinations
             gdp_data = filtered_df.groupby(['Country', 'Year']).agg({
                 'Suicides Count': 'sum',
                 'Population': 'sum',
@@ -658,56 +658,25 @@ def main():
                 category_orders={'Income Level': income_order},
                 size_max=15
             )
-            fig_gdp.update_layout(
-                height=170,
-                margin=dict(l=40, r=40, t=10, b=40),
-                font=dict(size=11),
-                showlegend=True,
-                legend=dict(
-                    orientation="h", 
-                    yanchor="bottom", 
-                    y=1.02, 
-                    xanchor="center", 
-                    x=0.5, 
-                    font=dict(size=10),
-                    itemsizing='constant'
-                ),
-                plot_bgcolor='rgba(0,0,0,0)',
-                paper_bgcolor='rgba(0,0,0,0)',
-                xaxis=dict(
-                    tickformat='$,.0f',
-                    showgrid=True,
-                    gridcolor='rgba(128,128,128,0.2)'
-                ),
-                yaxis=dict(
-                    showgrid=True,
-                    gridcolor='rgba(128,128,128,0.2)'
-                )
-            )
-            fig_gdp.update_xaxes(
-                title_font_size=11, 
-                tickfont_size=10,
-                tickmode='linear',
-                tick0=0,
-                dtick=20000,
-                range=[-2000, 82000]
-            )
-            fig_gdp.update_yaxes(title_font_size=11, tickfont_size=10)
             
-        else:  # Income Trends view
-            # Time series by income level
-            income_time_data = filtered_df.groupby(['Year', 'Income Level']).agg({
+        else:  # Country Overview view - one dot per country
+            # Average across all years for each country
+            country_overview = filtered_df.groupby('Country').agg({
                 'Suicides Count': 'sum',
-                'Population': 'sum'
+                'Population': 'sum',
+                'GDP Per Capita ($)': 'mean'
             }).reset_index()
-            income_time_data['Rate per 100K'] = (income_time_data['Suicides Count'] / income_time_data['Population']) * 100000
-            income_time_data['Income Level'] = pd.Categorical(income_time_data['Income Level'], categories=income_order, ordered=True)
+            country_overview['Rate per 100K'] = (country_overview['Suicides Count'] / country_overview['Population']) * 100000
+            country_overview['Income Level'] = country_overview['GDP Per Capita ($)'].apply(categorize_income)
+            country_overview['Income Level'] = pd.Categorical(country_overview['Income Level'], categories=income_order, ordered=True)
             
-            fig_gdp = px.line(
-                income_time_data,
-                x='Year',
+            fig_gdp = px.scatter(
+                country_overview,
+                x='GDP Per Capita ($)',
                 y='Rate per 100K',
                 color='Income Level',
+                size='Suicides Count',
+                hover_data=['Country'],
                 color_discrete_map={
                     'Low Income': '#d62728',
                     'Lower Middle': '#ff7f0e', 
@@ -715,34 +684,44 @@ def main():
                     'High Income': '#1f77b4'
                 },
                 category_orders={'Income Level': income_order},
-                markers=True
+                size_max=20
             )
-            fig_gdp.update_layout(
-                height=170,
-                margin=dict(l=40, r=40, t=10, b=40),
-                font=dict(size=11),
-                showlegend=True,
-                legend=dict(
-                    orientation="h", 
-                    yanchor="bottom", 
-                    y=1.02, 
-                    xanchor="center", 
-                    x=0.5, 
-                    font=dict(size=10)
-                ),
-                plot_bgcolor='rgba(0,0,0,0)',
-                paper_bgcolor='rgba(0,0,0,0)',
-                xaxis=dict(
-                    showgrid=True,
-                    gridcolor='rgba(128,128,128,0.2)'
-                ),
-                yaxis=dict(
-                    showgrid=True,
-                    gridcolor='rgba(128,128,128,0.2)'
-                )
+        
+        fig_gdp.update_layout(
+            height=170,
+            margin=dict(l=40, r=40, t=10, b=40),
+            font=dict(size=11),
+            showlegend=True,
+            legend=dict(
+                orientation="h", 
+                yanchor="bottom", 
+                y=1.02, 
+                xanchor="center", 
+                x=0.5, 
+                font=dict(size=10),
+                itemsizing='constant'
+            ),
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            xaxis=dict(
+                tickformat='$,.0f',
+                showgrid=True,
+                gridcolor='rgba(128,128,128,0.2)'
+            ),
+            yaxis=dict(
+                showgrid=True,
+                gridcolor='rgba(128,128,128,0.2)'
             )
-            fig_gdp.update_xaxes(title_font_size=11, tickfont_size=10)
-            fig_gdp.update_yaxes(title_font_size=11, tickfont_size=10)
+        )
+        fig_gdp.update_xaxes(
+            title_font_size=11, 
+            tickfont_size=10,
+            tickmode='linear',
+            tick0=0,
+            dtick=20000,
+            range=[-2000, 82000]
+        )
+        fig_gdp.update_yaxes(title_font_size=11, tickfont_size=10)
         
         st.plotly_chart(fig_gdp, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
