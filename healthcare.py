@@ -610,7 +610,7 @@ def main():
         # Add toggle for economic view
         econ_view = st.radio(
             "View:",
-            ["GDP Correlation", "Country Overview"],
+            ["Time Trends", "GDP Correlation", "Country Overview"],
             horizontal=True,
             label_visibility="collapsed",
             key="econ_view"
@@ -632,7 +632,47 @@ def main():
         filtered_df['Income Level'] = filtered_df['GDP Per Capita ($)'].apply(categorize_income)
         income_order = ['Low Income', 'Lower Middle', 'Upper Middle', 'High Income']
         
-        if econ_view == "GDP Correlation":
+        if econ_view == "Time Trends":
+            # Line chart showing trends over time for selected countries
+            if 'All' in selected_countries or len(selected_countries) > 10:
+                # If too many countries, show top 10 by average rate
+                avg_rates = filtered_df.groupby('Country')['Suicides/100K Population'].mean().sort_values(ascending=False)
+                top_countries_list = avg_rates.head(10).index.tolist()
+                trend_data = filtered_df[filtered_df['Country'].isin(top_countries_list)]
+                chart_title = "Top 10 Countries - Trends Over Time"
+            else:
+                trend_data = filtered_df
+                chart_title = "Selected Countries - Trends Over Time"
+            
+            # Aggregate by country and year
+            trend_summary = trend_data.groupby(['Country', 'Year']).agg({
+                'Suicides Count': 'sum',
+                'Population': 'sum',
+                'GDP Per Capita ($)': 'mean'
+            }).reset_index()
+            trend_summary['Rate per 100K'] = (trend_summary['Suicides Count'] / trend_summary['Population']) * 100000
+            trend_summary['Income Level'] = trend_summary['GDP Per Capita ($)'].apply(categorize_income)
+            
+            fig_gdp = px.line(
+                trend_summary,
+                x='Year',
+                y='Rate per 100K',
+                color='Country',
+                markers=True,
+                hover_data=['GDP Per Capita ($)', 'Income Level']
+            )
+            
+            fig_gdp.update_traces(
+                marker=dict(size=6),
+                line=dict(width=2)
+            )
+            
+            fig_gdp.update_layout(
+                title=dict(text=chart_title, font=dict(size=12), y=0.98),
+                hovermode='x unified'
+            )
+            
+        elif econ_view == "GDP Correlation":
             # Original scatter plot view - country-year combinations
             gdp_data = filtered_df.groupby(['Country', 'Year']).agg({
                 'Suicides Count': 'sum',
@@ -660,17 +700,38 @@ def main():
             # Make size proportional to the rate itself for better visualization
             gdp_data['Size'] = gdp_data['Rate per 100K'] ** 1.5  # Use power to make differences more visible
             
-            fig_gdp = px.scatter(
-                gdp_data,
-                x='GDP Per Capita ($)',
-                y='Rate per 100K',
-                color='Income Level',
-                size='Size',
-                hover_data=['Country', 'Year', 'Suicides Count'],
-                color_discrete_map=color_map,
-                category_orders={'Income Level': present_income_order},
-                size_max=15
-            )
+            # Add option for animation
+            animate_option = st.checkbox("Animate by Year", value=False, key="animate_gdp")
+            
+            if animate_option and len(gdp_data['Year'].unique()) > 1:
+                fig_gdp = px.scatter(
+                    gdp_data,
+                    x='GDP Per Capita ($)',
+                    y='Rate per 100K',
+                    color='Income Level',
+                    size='Size',
+                    hover_data=['Country', 'Suicides Count'],
+                    color_discrete_map=color_map,
+                    category_orders={'Income Level': present_income_order},
+                    size_max=15,
+                    animation_frame='Year',
+                    animation_group='Country',
+                    range_x=[gdp_data['GDP Per Capita ($)'].min() * 0.9, gdp_data['GDP Per Capita ($)'].max() * 1.1],
+                    range_y=[0, gdp_data['Rate per 100K'].max() * 1.1]
+                )
+                fig_gdp.layout.updatemenus[0].buttons[0].args[1]["frame"]["duration"] = 1000
+            else:
+                fig_gdp = px.scatter(
+                    gdp_data,
+                    x='GDP Per Capita ($)',
+                    y='Rate per 100K',
+                    color='Income Level',
+                    size='Size',
+                    hover_data=['Country', 'Year', 'Suicides Count'],
+                    color_discrete_map=color_map,
+                    category_orders={'Income Level': present_income_order},
+                    size_max=15
+                )
             
         else:  # Country Overview view - one dot per country
             # Average across all years for each country
@@ -713,16 +774,29 @@ def main():
             )
         
         # Adjust x-axis range based on the data
-        if not gdp_data.empty if econ_view == "GDP Correlation" else not country_overview.empty:
-            data_to_use = gdp_data if econ_view == "GDP Correlation" else country_overview
-            min_gdp = data_to_use['GDP Per Capita ($)'].min()
-            max_gdp = data_to_use['GDP Per Capita ($)'].max()
-            gdp_range = max_gdp - min_gdp
-            x_min = max(0, min_gdp - gdp_range * 0.1)
-            x_max = max_gdp + gdp_range * 0.1
-        else:
-            x_min = 0
-            x_max = 82000
+        if econ_view == "Time Trends":
+            # For time trends, we don't need to adjust x-axis range
+            pass
+        elif econ_view == "GDP Correlation":
+            if not gdp_data.empty:
+                min_gdp = gdp_data['GDP Per Capita ($)'].min()
+                max_gdp = gdp_data['GDP Per Capita ($)'].max()
+                gdp_range = max_gdp - min_gdp
+                x_min = max(0, min_gdp - gdp_range * 0.1)
+                x_max = max_gdp + gdp_range * 0.1
+            else:
+                x_min = 0
+                x_max = 82000
+        else:  # Country Overview
+            if not country_overview.empty:
+                min_gdp = country_overview['GDP Per Capita ($)'].min()
+                max_gdp = country_overview['GDP Per Capita ($)'].max()
+                gdp_range = max_gdp - min_gdp
+                x_min = max(0, min_gdp - gdp_range * 0.1)
+                x_max = max_gdp + gdp_range * 0.1
+            else:
+                x_min = 0
+                x_max = 82000
         
         fig_gdp.update_layout(
             height=170,
@@ -741,10 +815,10 @@ def main():
             plot_bgcolor='rgba(0,0,0,0)',
             paper_bgcolor='rgba(0,0,0,0)',
             xaxis=dict(
-                tickformat='$,.0f',
+                tickformat='$,.0f' if econ_view != "Time Trends" else None,
                 showgrid=True,
                 gridcolor='rgba(128,128,128,0.2)',
-                range=[x_min, x_max]
+                range=[x_min, x_max] if econ_view != "Time Trends" else None
             ),
             yaxis=dict(
                 showgrid=True,
