@@ -616,13 +616,14 @@ def main():
             key="econ_view"
         )
         
-        # Create income level categories based on World Bank classifications
+        # Create income level categories based on GDP per capita distribution
+        # These are adapted for GDP (not GNI) and based on the actual data distribution
         def categorize_income(gdp):
-            if gdp < 1000:
+            if gdp < 3000:
                 return 'Low Income'
-            elif gdp < 4000:
+            elif gdp < 9000:
                 return 'Lower Middle'
-            elif gdp < 12000:
+            elif gdp < 25000:
                 return 'Upper Middle'
             else:
                 return 'High Income'
@@ -640,7 +641,21 @@ def main():
             }).reset_index()
             gdp_data['Rate per 100K'] = (gdp_data['Suicides Count'] / gdp_data['Population']) * 100000
             gdp_data['Income Level'] = gdp_data['GDP Per Capita ($)'].apply(categorize_income)
-            gdp_data['Income Level'] = pd.Categorical(gdp_data['Income Level'], categories=income_order, ordered=True)
+            
+            # Get only the income levels present in the filtered data
+            present_income_levels = gdp_data['Income Level'].unique()
+            present_income_order = [level for level in income_order if level in present_income_levels]
+            
+            # Create color map with only present income levels
+            full_color_map = {
+                'Low Income': '#d62728',
+                'Lower Middle': '#ff7f0e', 
+                'Upper Middle': '#2ca02c',
+                'High Income': '#1f77b4'
+            }
+            color_map = {k: v for k, v in full_color_map.items() if k in present_income_levels}
+            
+            gdp_data['Income Level'] = pd.Categorical(gdp_data['Income Level'], categories=present_income_order, ordered=True)
             
             fig_gdp = px.scatter(
                 gdp_data,
@@ -649,13 +664,8 @@ def main():
                 color='Income Level',
                 size='Suicides Count',
                 hover_data=['Country', 'Year'],
-                color_discrete_map={
-                    'Low Income': '#d62728',
-                    'Lower Middle': '#ff7f0e', 
-                    'Upper Middle': '#2ca02c',
-                    'High Income': '#1f77b4'
-                },
-                category_orders={'Income Level': income_order},
+                color_discrete_map=color_map,
+                category_orders={'Income Level': present_income_order},
                 size_max=15
             )
             
@@ -668,7 +678,21 @@ def main():
             }).reset_index()
             country_overview['Rate per 100K'] = (country_overview['Suicides Count'] / country_overview['Population']) * 100000
             country_overview['Income Level'] = country_overview['GDP Per Capita ($)'].apply(categorize_income)
-            country_overview['Income Level'] = pd.Categorical(country_overview['Income Level'], categories=income_order, ordered=True)
+            
+            # Get only the income levels present in the filtered data
+            present_income_levels = country_overview['Income Level'].unique()
+            present_income_order = [level for level in income_order if level in present_income_levels]
+            
+            # Create color map with only present income levels
+            full_color_map = {
+                'Low Income': '#d62728',
+                'Lower Middle': '#ff7f0e', 
+                'Upper Middle': '#2ca02c',
+                'High Income': '#1f77b4'
+            }
+            color_map = {k: v for k, v in full_color_map.items() if k in present_income_levels}
+            
+            country_overview['Income Level'] = pd.Categorical(country_overview['Income Level'], categories=present_income_order, ordered=True)
             
             fig_gdp = px.scatter(
                 country_overview,
@@ -677,15 +701,22 @@ def main():
                 color='Income Level',
                 size='Suicides Count',
                 hover_data=['Country'],
-                color_discrete_map={
-                    'Low Income': '#d62728',
-                    'Lower Middle': '#ff7f0e', 
-                    'Upper Middle': '#2ca02c',
-                    'High Income': '#1f77b4'
-                },
-                category_orders={'Income Level': income_order},
+                color_discrete_map=color_map,
+                category_orders={'Income Level': present_income_order},
                 size_max=20
             )
+        
+        # Adjust x-axis range based on the data
+        if not gdp_data.empty if econ_view == "GDP Correlation" else not country_overview.empty:
+            data_to_use = gdp_data if econ_view == "GDP Correlation" else country_overview
+            min_gdp = data_to_use['GDP Per Capita ($)'].min()
+            max_gdp = data_to_use['GDP Per Capita ($)'].max()
+            gdp_range = max_gdp - min_gdp
+            x_min = max(0, min_gdp - gdp_range * 0.1)
+            x_max = max_gdp + gdp_range * 0.1
+        else:
+            x_min = 0
+            x_max = 82000
         
         fig_gdp.update_layout(
             height=170,
@@ -706,7 +737,8 @@ def main():
             xaxis=dict(
                 tickformat='$,.0f',
                 showgrid=True,
-                gridcolor='rgba(128,128,128,0.2)'
+                gridcolor='rgba(128,128,128,0.2)',
+                range=[x_min, x_max]
             ),
             yaxis=dict(
                 showgrid=True,
@@ -715,11 +747,7 @@ def main():
         )
         fig_gdp.update_xaxes(
             title_font_size=11, 
-            tickfont_size=10,
-            tickmode='linear',
-            tick0=0,
-            dtick=20000,
-            range=[-2000, 82000]
+            tickfont_size=10
         )
         fig_gdp.update_yaxes(title_font_size=11, tickfont_size=10)
         
