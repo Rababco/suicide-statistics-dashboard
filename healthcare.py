@@ -146,7 +146,7 @@ def check_password():
     </div>
     <div class="login-body">
         <div class="prepared-by">
-            Prepared by: Rabab Swaidan, MSBA Class of 2026
+            Created by: Rabab Swaidan, MSBA Class of 2026
         </div>
         <div class="security-notice">
             <strong>Protected Resource</strong><br>
