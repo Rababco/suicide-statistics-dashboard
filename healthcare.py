@@ -657,13 +657,16 @@ def main():
             
             gdp_data['Income Level'] = pd.Categorical(gdp_data['Income Level'], categories=present_income_order, ordered=True)
             
+            # Make size proportional to the rate itself for better visualization
+            gdp_data['Size'] = gdp_data['Rate per 100K'] ** 1.5  # Use power to make differences more visible
+            
             fig_gdp = px.scatter(
                 gdp_data,
                 x='GDP Per Capita ($)',
                 y='Rate per 100K',
                 color='Income Level',
-                size='Suicides Count',
-                hover_data=['Country', 'Year'],
+                size='Size',
+                hover_data=['Country', 'Year', 'Suicides Count'],
                 color_discrete_map=color_map,
                 category_orders={'Income Level': present_income_order},
                 size_max=15
@@ -694,13 +697,16 @@ def main():
             
             country_overview['Income Level'] = pd.Categorical(country_overview['Income Level'], categories=present_income_order, ordered=True)
             
+            # Make size proportional to the rate itself for better visualization
+            country_overview['Size'] = country_overview['Rate per 100K'] ** 1.5  # Use power to make differences more visible
+            
             fig_gdp = px.scatter(
                 country_overview,
                 x='GDP Per Capita ($)',
                 y='Rate per 100K',
                 color='Income Level',
-                size='Suicides Count',
-                hover_data=['Country'],
+                size='Size',
+                hover_data=['Country', 'Suicides Count'],
                 color_discrete_map=color_map,
                 category_orders={'Income Level': present_income_order},
                 size_max=20
